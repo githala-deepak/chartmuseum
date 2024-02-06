@@ -343,7 +343,15 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		err := server.StorageBackend.PutObject(pathutil.Join(repo, ppf.filename), ppf.content)
 		if err == nil {
 			storedFiles = append(storedFiles, ppf)
+			server.Logger.Debugc(c, "Chart uploaded done to s3...",
+				"filename", ppf.filename,
+				"field", ppf.field,
+			)
 		} else {
+			server.Logger.Debugc(c, "Error in Chart upload to s3...",
+				"filename", ppf.filename,
+				"field", ppf.field,
+			)
 			// Clean up what's already been saved
 			for _, ppf := range storedFiles {
 				server.StorageBackend.DeleteObject(ppf.filename)
@@ -358,6 +366,8 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		}
 	}
 
+	server.Logger.Debugc(c, "Before calling ChartVersionFromStorageObject from S3...")
+
 	chart, chartErr := cm_repo.ChartVersionFromStorageObject(cm_storage.Object{
 		Path:         path,
 		Content:      chartContent,
@@ -366,7 +376,11 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 		log(cm_logger.ErrorLevel, "cannot get chart from content", zap.Error(err), zap.Binary("content", chartContent))
 	}
 
+	server.Logger.Debugc(c, "After calling ChartVersionFromStorageObject from S3...Just before emitting the event...")
+
 	server.emitEvent(c, repo, action, chart)
+
+	server.Logger.Debugc(c, "Just after before emitting the event...")
 
 	c.JSON(http.StatusCreated, objectSavedResponse)
 }
