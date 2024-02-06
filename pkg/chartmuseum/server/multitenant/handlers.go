@@ -380,7 +380,7 @@ func (server *MultiTenantServer) postPackageAndProvenanceRequestHandler(c *gin.C
 
 	server.emitEvent(c, repo, action, chart)
 
-	server.Logger.Debugc(c, "Just after before emitting the event...")
+	server.Logger.Debugc(c, "Just after emitting the event...")
 
 	c.JSON(http.StatusCreated, objectSavedResponse)
 }
